@@ -1,22 +1,19 @@
-export const Routes = {
-  poll: "https://jsonplaceholder.typicode.com/posts/:postId",
-  noParams: "http://jsonplaceholder.typicode.com/posts"
-} as const;
+import { pathMap } from "./pathMap.ts";
 
-export type RouteStrings = (typeof Routes)[keyof typeof Routes];
+export type PathStrings = (typeof pathMap)[keyof typeof pathMap];
 // Utility type to extract keys from the route string
 // takes param T constrained to string
-export type ExtractRouteParams<T extends string> =
+export type ExtractPathParams<T extends string> =
   T extends `${infer _Start}:${infer Param}/${infer Rest}`
-  ? (Param extends "" ? never : Param) | ExtractRouteParams<`/${Rest}`>
+  ? (Param extends "" ? never : Param) | ExtractPathParams<`/${Rest}`>
   : T extends `${infer _Start}:${infer Param}`
   ? Param extends "" ? never : Param
   : never;
 
-export type RouteParams<T extends string> =
-  ExtractRouteParams<T> extends never
+export type PathParams<T extends string> =
+  ExtractPathParams<T> extends never
   ? Record<string, never>
-  : Record<ExtractRouteParams<T>, string>;
+  : Record<ExtractPathParams<T>, string>;
 
 export type HasPathParams<T extends string> =
   T extends `${infer _Start}:${infer _Param}/${infer _Rest}`
@@ -25,14 +22,14 @@ export type HasPathParams<T extends string> =
   ? true
   : false;
 
-export type RoutesWithParams = {
-  [K in keyof typeof Routes]: HasPathParams<(typeof Routes)[K]> extends true
-  ? (typeof Routes)[K]
+export type PathsWithParams = {
+  [K in keyof typeof pathMap]: HasPathParams<(typeof pathMap)[K]> extends true
+  ? (typeof pathMap)[K]
   : never;
-}[keyof typeof Routes];
+}[keyof typeof pathMap];
 
-export type RoutesWithoutParams = {
-  [K in keyof typeof Routes]: HasPathParams<(typeof Routes)[K]> extends false
-  ? (typeof Routes)[K]
+export type PathsWithoutParams = {
+  [K in keyof typeof pathMap]: HasPathParams<(typeof pathMap)[K]> extends false
+  ? (typeof pathMap)[K]
   : never;
-}[keyof typeof Routes];
+}[keyof typeof pathMap];

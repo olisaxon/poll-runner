@@ -1,13 +1,12 @@
 import * as csv from "@fast-csv/parse";
 import { readFile } from "node:fs/promises";
-import { RouteParams } from "./types.ts";
-import { RoutesWithParams } from "./types.ts";
+import type { PathParams, PathsWithParams } from "./types.ts";
 import { setTimeout } from "node:timers/promises";
 
-export type RunnerScript<T extends RoutesWithParams> = ({ routeParams }: { routeParams: RouteParams<T> }) => void;
-export type RunnerScriptWithError<T extends RoutesWithParams> = ({ routeParams, error }: { routeParams: RouteParams<T>, error: unknown }) => void;
+export type RunnerScript<T extends PathsWithParams> = ({ pathParams }: { pathParams: PathParams<T> }) => void;
+export type RunnerScriptWithError<T extends PathsWithParams> = ({ pathParams, error }: { pathParams: PathParams<T>, error: unknown }) => void;
 
-export type RunnerOptions<T extends RoutesWithParams> = {
+export type RunnerOptions<T extends PathsWithParams> = {
   url: T;
   filePath: string;
   delayMs?: number;
@@ -16,13 +15,13 @@ export type RunnerOptions<T extends RoutesWithParams> = {
   onError?: RunnerScriptWithError<T>;
 };
 
-export class RestRunner<T extends RoutesWithParams> {
+export class RestRunner<T extends PathsWithParams> {
   private readonly url: T;
   private readonly filePath: string;
   private delayMs: number;
-  private promise?: Promise<RouteParams<T>[]>;
-  private routeParams!: RouteParams<T>;
-  private parameterValues: RouteParams<T>[] = [];
+  private promise?: Promise<PathParams<T>[]>;
+  private pathParams!: PathParams<T>;
+  private pathParamValues: PathParams<T>[] = [];
   private isLoaded: boolean = false;
   private onBefore?: RunnerScript<T>;
   private onSuccess?: RunnerScript<T>;
@@ -39,7 +38,7 @@ export class RestRunner<T extends RoutesWithParams> {
 
   async run() {
     if (!this.isLoaded && this.promise) {
-      this.parameterValues = await this.promise;
+      this.pathParamValues = await this.promise;
       this.isLoaded = true;
     }
 
@@ -47,25 +46,25 @@ export class RestRunner<T extends RoutesWithParams> {
       completed: 0,
     };
 
-    for (const param of this.parameterValues) {
-      this.routeParams = param;
+    for (const param of this.pathParamValues) {
+      this.pathParams = param;
       const url = this.buildUrlWithParams(param);
 
       if (this.onBefore) {
-        this.onBefore({ routeParams: this.routeParams });
+        this.onBefore({ pathParams: this.pathParams });
       }
 
       try {
         await fetch(url);
 
         if (this.onSuccess) {
-          this.onSuccess({ routeParams: this.routeParams });
+          this.onSuccess({ pathParams: this.pathParams });
         }
         output.completed++;
 
       } catch (error) {
         if (this.onError) {
-          this.onError({ routeParams: this.routeParams, error })
+          this.onError({ pathParams: this.pathParams, error })
         }
       } finally {
         if (this.delayMs > 0) {
@@ -80,11 +79,11 @@ export class RestRunner<T extends RoutesWithParams> {
   private async loadData() {
     const buffer = await readFile(this.filePath, "utf-8");
 
-    return new Promise<RouteParams<T>[]>((resolve, reject) => {
-      const data: RouteParams<T>[] = [];
+    return new Promise<PathParams<T>[]>((resolve, reject) => {
+      const data: PathParams<T>[] = [];
       const stream = csv
         .parse({ headers: true })
-        .on("data", (row: RouteParams<T>) => data.push(row))
+        .on("data", (row: PathParams<T>) => data.push(row))
         .on("end", () => resolve(data))
         .on("error", reject);
 
@@ -93,7 +92,7 @@ export class RestRunner<T extends RoutesWithParams> {
     });
   }
 
-  static Init<U extends RoutesWithParams>(options: RunnerOptions<U>) {
+  static Init<U extends PathsWithParams>(options: RunnerOptions<U>) {
     const runner = new RestRunner(options);
 
     runner.promise = runner.loadData();
@@ -101,10 +100,10 @@ export class RestRunner<T extends RoutesWithParams> {
     return runner;
   }
 
-  private buildUrlWithParams(params: RouteParams<T>): string {
+  private buildUrlWithParams(params: PathParams<T>): string {
     let route: string = this.url;
     for (const key in params) {
-      const value = params[key as keyof RouteParams<T>] as string;
+      const value = params[key as keyof PathParams<T>] as string;
       route = route.replace(`:${key}`, value);
     }
     return route;

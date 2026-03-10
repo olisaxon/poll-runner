@@ -3,10 +3,10 @@ import { RestRunner } from "./runner.ts";
 const filePath = "sample.csv";
 
 const rr = RestRunner.Init({
-  url: "https://jsonplaceholder.typicode.com/posts/:postId",
+  url: "https://lender-communications.qa.zuto.cloud/api/Submissions/:submissionId/poll",
   filePath,
-  onSuccess: ({ routeParams }) => {
-    console.log(routeParams.postId)
+  onSuccess: ({ pathParams }) => {
+    console.log(pathParams.submissionId)
     console.log("req completed")
   },
   onError: ({ error }) => {
