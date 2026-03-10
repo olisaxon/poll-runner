@@ -3,7 +3,7 @@ import { RestRunner } from "./runner.ts";
 const filePath = "sample.csv";
 
 const rr = RestRunner.Init({
-  url: "https://lender-communications.qa.zuto.cloud/api/Submissions/:submissionId/poll",
+  endpoint: "poll",
   filePath,
   onSuccess: ({ pathParams }) => {
     console.log(pathParams.submissionId)
