@@ -36,6 +36,8 @@ Each row will produce one request.
 
 ```ts
 
+const filePath = "sample.csv";
+
 const rr = RestRunner.Init({
   endpoint: "poll", // only works with poll for now
   filePath,
@@ -51,6 +53,12 @@ const rr = RestRunner.Init({
 });
 
 rr.run().then(console.log).catch(console.error);
+```
+
+To execute the runner:
+
+```bash
+npm start
 ```
 
 ---
